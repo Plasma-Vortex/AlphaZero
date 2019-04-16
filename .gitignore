@@ -1,3 +1,4 @@
 NNs/
 .vscode/
 __pycache__/
+*.pyc
