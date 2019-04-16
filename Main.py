@@ -79,25 +79,3 @@ n = Net('ResNet v1', 5820)
 n.train(5, 50)
 # n.playHuman(100, 0)
 
-
-# {
-#     // See https://go.microsoft.com/fwlink/?LinkId=733558
-#     // for the documentation about the tasks.json format
-#     "version": "2.0.0",
-#     "tasks": [
-#         {
-#             "label": "Run Python 3",
-#             "type": "shell",
-#             "command": "python3",
-#             "args": [
-#                 // "-O",
-#                 // "/home/howard/Documents/TensorFlowGameAI/Main.py"
-#                 "${file}"
-#             ],
-#             "group": {
-#                 "kind": "build",
-#                 "isDefault": true
-#             }
-#         }
-#     ]
-# }
