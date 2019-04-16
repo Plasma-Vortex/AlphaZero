@@ -11,6 +11,7 @@ if local:
     import random
     import copy
     import time
+    import os
 
     from Node import Node
     from Game import *
@@ -84,7 +85,11 @@ def valueHead(x):
 class Net:
     def __init__(self, name, age, ID=''):
         self.name = name
-        self.age = age
+        if age == -1:
+            files = os.listdir('NNs/'+self.name)
+            self.age = max([int(f[len(self.name)+2:-3]) for f in files])
+        else:
+            self.age = age
         self.updateEps()
         self.filename = 'NNs/' + self.name + '/' + \
             self.name + ', ' + str(self.age) + '.h5'
@@ -113,6 +118,7 @@ class Net:
             self.model.compile(optimizer=Adam(), loss=[
                                'categorical_crossentropy', 'mse'])
         self.model.summary()
+        print('Name = %s, Age = %d' % (self.name, self.age))
 
     def simulate(self, start):
         cur = start

@@ -1,6 +1,6 @@
 import os
 
-NN_name = 'Conv v2'
+NN_name = '128-128-128-128'
 files = os.listdir('NNs/'+NN_name)
 ages = [int(f[len(NN_name)+2:-3]) for f in files]
 maxAge = max(ages)

@@ -72,9 +72,9 @@ s20_10 = [-28, -5, -10, -16, -15, -4, -20, -16, -27, -26, -22, -14, 1, 8, 13, 5,
 # plt.show()
 
 # n = Net("128-128-128-128", 2980)
-# n = Net('Conv v2', 15000)
-n = Net('ResNet v1', 5820)
-# n = Net('ResNet v2', 2470)
+# n = Net('Conv v2', -1)
+# n = Net('ResNet v1', -1)
+n = Net('ResNet v2', -1)
 
 n.train(5, 50)
 # n.playHuman(100, 0)
