@@ -3,15 +3,13 @@ import numpy as np
 
 OthN = 6
 
+
 def startStateTTT():
     return np.zeros(9)
 
 
 def startStateC4():
     return np.zeros(42)
-
-def startStateOth():
-    return np.zeros((OthN, OthN))
 
 
 def validMovesTTT(state):
@@ -21,8 +19,6 @@ def validMovesTTT(state):
 def validMovesC4(state):
     return state[-7:] == 0
 
-# def validMovesOth(state):
-    
 
 def evaluateStateTTT(s):
     for i in range(3):
@@ -88,9 +84,6 @@ def nextStateC4(state, move):
             s[i] = 1
             return s
 
-def nextStateOth(state, move):
-    x, y = move
-    # state[i][j] = 
 
 def rotateTTT(data):
     newData = copy.deepcopy(data)
@@ -157,7 +150,7 @@ def printBoardTTT(state, flip=1):
 
 def printBoardC4(state, flip=1):
     print("Board:")
-    for i in range(5, -1, -1):
+    for i in reversed(range(6)):
         for j in range(7):
             if flip*state[7*i+j] == 1:
                 print('X', end=' ')
@@ -183,3 +176,129 @@ def printOutputC4(prob, value=None):
     print()
     if value != None:
         print('Predicted Value = %.2f' % value)
+
+
+# Othello
+
+
+def startStateOth():
+    s = np.zeros((OthN*OthN))
+    s[OthN*(OthN//2 - 1) + (OthN//2-1)] = -1
+    s[OthN*(OthN//2 - 1) + OthN//2] = 1
+    s[OthN*OthN//2 + (OthN//2-1)] = 1
+    s[OthN*OthN//2 + OthN//2] = -1
+    return s
+
+
+shifts = np.array([[-1, -1], [-1, 0], [-1, 1],
+                   [0, -1], [0, 1],
+                   [1, -1], [1, 0], [1, 1]])
+
+
+def inGridOth(point):
+    return 0 <= point[0] < OthN and 0 <= point[1] < OthN
+
+
+def valueOth(state, point):
+    return state[OthN*point[0] + point[1]]
+
+
+def canMoveOth(state, point):
+    if valueOth(state, point) != 0:
+        return False
+    for shift in shifts:
+        temp = point + shift
+        if inGridOth(temp) and valueOth(state, temp) == -1:
+            while inGridOth(temp) and valueOth(state, temp) == -1:
+                temp += shift
+            if inGridOth(temp) and valueOth(state, temp) == 1:
+                return True
+    return False
+
+
+def validMovesOth(state):
+    valid = np.zeros((OthN*OthN+1))
+    for i in range(OthN*OthN):
+        valid[i] = canMoveOth(state, (i//OthN, i % OthN))
+    valid[OthN*OthN] = not np.any(valid)
+    return valid
+
+
+def evaluateStateOth(state):
+    if validMovesOth(state)[OthN*OthN]:
+        if validMovesOth(-state)[OthN*OthN]:  # both players must pass
+            return (True, np.sign(np.sum(state)))
+    return (False, 0)
+
+
+def nextStateOth(state, move):
+    s = state.copy()
+    if move == OthN*OthN:
+        return s
+    point = (move//OthN, move % OthN)
+    if __debug__:
+        if not canMoveOth(s, point):
+            print('Error in nextStateOth: tried to use invalid move')
+    s[move] = 1
+    for shift in shifts:
+        temp = point + shift
+        if inGridOth(temp) and valueOth(s, temp) == -1:
+            while inGridOth(temp) and valueOth(s, temp) == -1:
+                temp += shift
+            if inGridOth(temp) and valueOth(s, temp) == 1:
+                temp = point + shift
+                while valueOth(s, temp) == -1:
+                    s[OthN*temp[0]+temp[1]] = 1
+                    temp += shift
+    return s
+
+
+def rotateOth(data):
+    newData = copy.deepcopy(data)
+    for i in range(OthN):
+        for j in range(OthN):
+            for k in range(2):
+                newData[k][OthN*i+j] = data[k][OthN*(OthN-j-1)+i]
+    return newData
+
+
+def AddSymmetriesOth(data):
+    allData = []
+    data = copy.deepcopy(data)
+    allData.append(data)
+    data = rotateOth(data)
+    allData.append(data)
+    data = rotateOth(data)
+    allData.append(data)
+    data = rotateOth(data)
+    allData.append(data)
+    data = copy.deepcopy(data)
+    for i in range(OthN):
+        for j in range(OthN//2):
+            for k in range(2):
+                data[k][OthN*i+j], data[k][OthN*i + (OthN-j-1)] = \
+                    data[k][OthN*i + (OthN-j-1)], data[k][OthN*i+j]
+    allData.append(data)
+    data = rotateOth(data)
+    allData.append(data)
+    data = rotateOth(data)
+    allData.append(data)
+    data = rotateOth(data)
+    allData.append(data)
+    return allData
+
+
+def printBoardOth(state, flip=1):
+    print("Board:")
+    for i in range(OthN):
+        for j in range(OthN):
+            if flip*state[OthN*i+j] == 1:
+                print('X', end=' ')
+            elif flip*state[OthN*i+j] == -1:
+                print('O', end=' ')
+            else:
+                print('-', end=' ')
+        print()
+
+def printOutputOth(prob, value=None):
+    print('Printing Output')

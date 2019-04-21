@@ -27,11 +27,18 @@ maxMovesC4 = 7
 stateSizeTTT = 9
 maxMovesTTT = 9
 
+OthN = 6
+stateSizeOth = OthN*OthN
+maxMovesOth = OthN*OthN + 1
+
 hC4 = 6
 wC4 = 7
 
+hOth = OthN
+wOth = OthN
+
 batchsize = 32
-alpha = 0.8
+alpha = 0.5
 
 
 def line():
@@ -41,7 +48,7 @@ def line():
 def convFormat(state):
     # return state
 
-    a = state.reshape(hC4, wC4)
+    a = state.reshape(hOth, wOth)
     b = [np.maximum(a, 0), np.maximum(-a, 0)]
     return np.stack(b, axis=-1)
 
@@ -65,7 +72,7 @@ def policyHead(x):
     p = BatchNormalization()(p)
     p = Activation('relu')(p)
     p = Flatten()(p)
-    p = Dense(maxMovesC4)(p)
+    p = Dense(maxMovesOth)(p)
     p = Activation('softmax')(p)
     return p
 
@@ -100,15 +107,13 @@ class Net:
         elif age != 0:
             self.model = keras.models.load_model(self.filename)
         else:
-            inputs = Input(shape=(hC4, wC4, 2))
-            depth = 128
+            inputs = Input(shape=(hOth, wOth, 2))
+            depth = 16
 
             x = Conv2D(filters=depth, kernel_size=(5, 5),
                        padding='same', use_bias=False)(inputs)
             x = BatchNormalization()(x)
             x = Activation('relu')(x)
-            x = resBlock(x, depth, (3, 3))
-            x = resBlock(x, depth, (3, 3))
             x = resBlock(x, depth, (3, 3))
             prob = policyHead(x)
             value = valueHead(x)
@@ -148,7 +153,7 @@ class Net:
             cur = cur.parent
 
     def selfPlay(self, sims):
-        start = startStateC4()
+        start = startStateOth()
         cur = Node(start)
         p = self.predictOne(start)[0]
         cur.expand(p)
@@ -169,25 +174,25 @@ class Net:
             data = [cur.getState(), prob, winner]
             # if last:
             #     print('Last state:')
-            #     printBoardC4(data[0])
+            #     printBoardOth(data[0])
             #     print('MCTS: ')
-            #     printOutputC4(prob, winner)
+            #     printOutputOth(prob, winner)
             #     print('NN: ')
             #     p, v = self.predictOne(data[0])
-            #     printOutputC4(p, v)
+            #     printOutputOth(p, v)
             #     last = False
             #     line()
-            allData += AddSymmetriesC4(data)
+            allData += AddSymmetriesOth(data)
             # sample = allData[-1]
             # line()
             # print('Sample Data: ')
-            # printBoardC4(sample[0])
+            # printBoardOth(sample[0])
             # print(np.sum(sample[0]))
             # print('MCTS:')
-            # printOutputC4(sample[1], sample[2])
+            # printOutputOth(sample[1], sample[2])
             # print('NN:')
             # p, v = self.predictOne(sample[0])
-            # printOutputC4(p, v)
+            # printOutputOth(p, v)
             # line()
             cur = cur.parent
         return allData
@@ -238,23 +243,23 @@ class Net:
             prob, value = self.predictOne(state)
             if display:
                 print('NN: ', end='')
-                printOutputC4(prob, value)
+                printOutputOth(prob, value)
         else:
             cur = Node(state)
             for _ in range(sims):
                 self.simulate(cur)
             prob = cur.getProbDist()
-            value = max(cur.Q[i] for i in range(maxMovesC4) if cur.valid[i])
+            value = max(cur.Q[i] for i in range(maxMovesOth) if cur.valid[i])
             if display:
                 print('MCTS: ', end='')
-                printOutputC4(prob, value)
-        valid = validMovesC4(state)
+                printOutputOth(prob, value)
+        valid = validMovesOth(state)
         prob = np.where(valid, prob, 0)
         prob /= np.sum(prob)
         if temp == 0:
             move = np.argmax(prob)
         else:
-            move = np.random.choice(maxMovesC4, p=prob)
+            move = np.random.choice(maxMovesOth, p=prob)
         p = prob[move]
         return (move, p)
 
@@ -265,22 +270,22 @@ class Net:
                 turn = 1
             else:
                 turn = -1
-            state = startStateC4()
-            lastCompState = startStateC4()
+            state = startStateOth()
+            lastCompState = startStateOth()
             history = []
             line()
             while True:
                 if turn == 1:  # Human Turn
-                    printBoardC4(state)
+                    printBoardOth(state)
                     string = input('Your Move: ')
                     try:
                         move = int(string)
                     except ValueError:
                         print('Invalid Move! Choose a new move from this state:')
                         continue
-                    if 0 <= move < maxMovesC4 and validMovesC4(state)[move]:
+                    if 0 <= move < maxMovesOth and validMovesOth(state)[move]:
                         history.append(state.copy())
-                        state = nextStateC4(state, move)
+                        state = nextStateOth(state, move)
                     elif move == -1:
                         if len(history) == 0:
                             print('Cannot undo move! This is the starting state')
@@ -292,20 +297,20 @@ class Net:
                     elif move == -2:
                         line()
                         print('Predictions for current state (your turn)')
-                        printBoardC4(state)
+                        printBoardOth(state)
                         p, v = self.predictOne(state)
-                        printOutputC4(p, v)
+                        printOutputOth(p, v)
                         line()
                         continue
                     elif move == -3:
-                        if np.array_equal(state, startStateC4()):
+                        if np.array_equal(state, startStateOth()):
                             print('Previous state predictions do not exist')
                             continue
                         line()
                         print('Predictions for previous state (computer turn)')
-                        printBoardC4(lastCompState)
+                        printBoardOth(lastCompState)
                         p, v = self.predictOne(lastCompState)
-                        printOutputC4(p, v)
+                        printOutputOth(p, v)
                         line()
                         continue
                     else:
@@ -314,12 +319,12 @@ class Net:
                 else:
                     lastCompState = state.copy()
                     move, prob = self.selectMove(state, sims, temp, True)
-                    state = nextStateC4(state, move)
+                    state = nextStateOth(state, move)
                     print("Computer's Move: " + str(move))
                     if prob < 0.1:
                         print('Unusual move played!')
 
-                done, winner = evaluateStateC4(state)
+                done, winner = evaluateStateOth(state)
                 if done:
                     if winner == 1:
                         if turn == 1:
@@ -330,7 +335,7 @@ class Net:
                         print('Error: impossible to win on opponents turn')
                     else:
                         print('Tie')
-                    printBoardC4(state*turn)
+                    printBoardOth(state*turn)
                     break
                 state *= -1
                 turn *= -1
