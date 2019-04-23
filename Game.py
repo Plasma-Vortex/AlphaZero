@@ -4,6 +4,9 @@ import numpy as np
 OthN = 6
 
 
+def line():
+    print('='*70)
+
 def startStateTTT():
     return np.zeros(9)
 
@@ -225,10 +228,11 @@ def validMovesOth(state):
 
 
 def evaluateStateOth(state):
-    if validMovesOth(state)[OthN*OthN]:
-        if validMovesOth(-state)[OthN*OthN]:  # both players must pass
-            return (True, np.sign(np.sum(state)))
-    return (False, 0)
+    valid = validMovesOth(state)
+    if valid[OthN*OthN] and validMovesOth(-state)[OthN*OthN]:
+        # both players must pass
+        return (True, np.sign(np.sum(state)), valid)
+    return (False, 0, valid)
 
 
 def nextStateOth(state, move):
@@ -288,9 +292,14 @@ def AddSymmetriesOth(data):
     return allData
 
 
-def printBoardOth(state, flip=1):
-    print("Board:")
+def printBoardOth(state, flip=1, playing=False):
+    if playing:
+        print('Current State:')
+    else:
+        print("Board:")
     for i in range(OthN):
+        if playing:
+            print(OthN - i, end=' ')
         for j in range(OthN):
             if flip*state[OthN*i+j] == 1:
                 print('X', end=' ')
@@ -299,6 +308,67 @@ def printBoardOth(state, flip=1):
             else:
                 print('-', end=' ')
         print()
+    if playing:
+        print('  ', end='')
+        for i in range(OthN):
+            print(i+1, end=' ') 
+        print()
+
 
 def printOutputOth(prob, value=None):
-    print('Printing Output')
+    for i in range(OthN):
+        for j in range(OthN):
+            print("%.2f" % prob[OthN*i+j], end=' ')
+        print()
+    print('Pass: %.2f' % prob[OthN*OthN])
+    if value != None:
+        print('Predicted Value = %.2f' % value)
+
+
+def getHumanMoveOth(state):
+    while True:
+        line()
+        valid = validMovesOth(state)
+        printBoardOth(state, playing=True)
+        if valid[OthN*OthN]:
+            string = input('No valid moves. Press enter to pass. ')
+        else:
+            string = input('Your Move: ')
+        strings = string.split()
+        if len(strings) == 0:
+            if valid[OthN*OthN]:
+                return OthN*OthN
+            else:
+                print("You can't pass when you have valid moves")
+                continue
+        elif len(strings) == 1:
+            try:
+                move = int(strings[0])
+                if -3 <= move <= -1:
+                    return move
+                else:
+                    print('Enter point (x, y) to move, or -1, -2, -3 for special request')
+                    continue
+            except ValueError:
+                print('You did not type an integer')
+                continue
+        elif len(strings) == 2:
+            try:
+                x, y = (int(i) for i in strings)
+                if 1 <= x <= OthN and 1 <= y <= OthN:
+                    x, y = OthN - y, x - 1
+                    move = OthN*x + y
+                else:
+                    print('Coordinates must be between 1 and %d' % OthN)
+                    continue
+                if valid[move]:
+                    return move
+                else:
+                    print('Illegal move')
+                    continue
+            except ValueError:
+                print('You did not type 2 integers')
+                continue
+        else:
+            print('Enter 2 space-separated integers x and y, the coordinates of your move (x, y)')
+            continue

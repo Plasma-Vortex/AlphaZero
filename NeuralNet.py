@@ -41,8 +41,6 @@ batchsize = 32
 alpha = 0.5
 
 
-def line():
-    print('='*70)
 
 
 def convFormat(state):
@@ -100,6 +98,8 @@ class Net:
         self.updateEps()
         self.filename = 'NNs/' + self.name + '/' + \
             self.name + ', ' + str(self.age) + '.h5'
+        if not os.path.exists('NNs/' + self.name):
+            os.makedirs('NNs/' + self.name)
         if ID != '' and not local:
             f = drive.CreateFile({'id': ID})
             f.GetContentFile(self.filename)
@@ -108,12 +108,16 @@ class Net:
             self.model = keras.models.load_model(self.filename)
         else:
             inputs = Input(shape=(hOth, wOth, 2))
-            depth = 16
+            depth = 64
 
             x = Conv2D(filters=depth, kernel_size=(5, 5),
                        padding='same', use_bias=False)(inputs)
             x = BatchNormalization()(x)
             x = Activation('relu')(x)
+            x = resBlock(x, depth, (3, 3))
+            x = resBlock(x, depth, (3, 3))
+            x = resBlock(x, depth, (3, 3))
+            x = resBlock(x, depth, (3, 3))
             x = resBlock(x, depth, (3, 3))
             prob = policyHead(x)
             value = valueHead(x)
@@ -167,33 +171,11 @@ class Net:
         winner = cur.endVal
         cur = cur.parent
         allData = []
-        # last = True
         while cur != None:
             prob = cur.getProbDist()
             winner = -winner
             data = [cur.getState(), prob, winner]
-            # if last:
-            #     print('Last state:')
-            #     printBoardOth(data[0])
-            #     print('MCTS: ')
-            #     printOutputOth(prob, winner)
-            #     print('NN: ')
-            #     p, v = self.predictOne(data[0])
-            #     printOutputOth(p, v)
-            #     last = False
-            #     line()
             allData += AddSymmetriesOth(data)
-            # sample = allData[-1]
-            # line()
-            # print('Sample Data: ')
-            # printBoardOth(sample[0])
-            # print(np.sum(sample[0]))
-            # print('MCTS:')
-            # printOutputOth(sample[1], sample[2])
-            # print('NN:')
-            # p, v = self.predictOne(sample[0])
-            # printOutputOth(p, v)
-            # line()
             cur = cur.parent
         return allData
 
@@ -251,7 +233,7 @@ class Net:
             prob = cur.getProbDist()
             value = max(cur.Q[i] for i in range(maxMovesOth) if cur.valid[i])
             if display:
-                print('MCTS: ', end='')
+                print('MCTS:')
                 printOutputOth(prob, value)
         valid = validMovesOth(state)
         prob = np.where(valid, prob, 0)
@@ -273,20 +255,10 @@ class Net:
             state = startStateOth()
             lastCompState = startStateOth()
             history = []
-            line()
             while True:
                 if turn == 1:  # Human Turn
-                    printBoardOth(state)
-                    string = input('Your Move: ')
-                    try:
-                        move = int(string)
-                    except ValueError:
-                        print('Invalid Move! Choose a new move from this state:')
-                        continue
-                    if 0 <= move < maxMovesOth and validMovesOth(state)[move]:
-                        history.append(state.copy())
-                        state = nextStateOth(state, move)
-                    elif move == -1:
+                    move = getHumanMoveOth(state)
+                    if move == -1:
                         if len(history) == 0:
                             print('Cannot undo move! This is the starting state')
                         else:
@@ -314,8 +286,8 @@ class Net:
                         line()
                         continue
                     else:
-                        print('Invalid Move! Choose a new move from this state:')
-                        continue
+                        history.append(state.copy())
+                        state = nextStateOth(state, move)
                 else:
                     lastCompState = state.copy()
                     move, prob = self.selectMove(state, sims, temp, True)
@@ -324,7 +296,7 @@ class Net:
                     if prob < 0.1:
                         print('Unusual move played!')
 
-                done, winner = evaluateStateOth(state)
+                done, winner, _ = evaluateStateOth(state)
                 if done:
                     if winner == 1:
                         if turn == 1:

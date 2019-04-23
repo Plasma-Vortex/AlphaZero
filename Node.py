@@ -27,8 +27,7 @@ class Node:
             return
         self.state = state.copy()
         self.parent = parent
-        self.valid = validMovesOth(self.state)
-        self.end, self.endVal = evaluateStateOth(self.state)
+        self.end, self.endVal, self.valid = evaluateStateOth(self.state)
         self.leaf = True
         self.children = None  # init when expanding
         self.N = None

@@ -1,6 +1,6 @@
 import os
 
-NN_name = 'ResNet v1'
+NN_name = 'Oth v1'
 files = os.listdir('NNs/'+NN_name)
 ages = [int(f[len(NN_name)+2:-3]) for f in files]
 maxAge = max(ages)

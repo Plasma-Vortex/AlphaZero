@@ -90,8 +90,8 @@ s100_1 = [-272, -265, -259, -269, -259, -266, -270, -262, -232, -225, -235, -244
 # n = Net('ResNet v1', -1)
 # n = Net('ResNet v2', -1)
 
-n = Net('Oth v1', 0)
+n = Net('Oth v3', -1)
 
-n.train(5, 50)
-# n.playHuman(100, 0)
+# n.train(5, 50)
+n.playHuman(100, 0)
 
