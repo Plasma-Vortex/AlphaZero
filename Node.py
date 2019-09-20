@@ -13,7 +13,7 @@ maxMovesC4 = 7
 stateSizeTTT = 9
 maxMovesTTT = 9
 
-OthN = 6
+OthN = 8
 stateSizeOth = OthN*OthN
 maxMovesOth = OthN*OthN + 1
 
@@ -21,10 +21,11 @@ c_puct = 1
 
 class Node:
     def __init__(self, state, parent=None):
-        if state.shape != (stateSizeOth,):  # use tf.shape?
-            print("Error in Node.py __init__: node initialized with invalid state")
-            print(state)
-            return
+        if __debug__:
+            if state.shape != (stateSizeOth,):  # use tf.shape?
+                print("Error in Node.py __init__: node initialized with invalid state")
+                print(state)
+                return
         self.state = state.copy()
         self.parent = parent
         self.end, self.endVal, self.valid = evaluateStateOth(self.state)

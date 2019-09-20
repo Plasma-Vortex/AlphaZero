@@ -27,7 +27,7 @@ maxMovesC4 = 7
 stateSizeTTT = 9
 maxMovesTTT = 9
 
-OthN = 6
+OthN = 8
 stateSizeOth = OthN*OthN
 maxMovesOth = OthN*OthN + 1
 
@@ -41,14 +41,29 @@ batchsize = 32
 alpha = 0.5
 
 
-
-
 def convFormat(state):
     # return state
 
     a = state.reshape(hOth, wOth)
     b = [np.maximum(a, 0), np.maximum(-a, 0)]
     return np.stack(b, axis=-1)
+
+
+def makeModel(resLayers, depth):
+    inputs = Input(shape=(hOth, wOth, 2))
+
+    x = Conv2D(filters=depth, kernel_size=(5, 5),
+               padding='same', use_bias=False)(inputs)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    for _ in range(resLayers):
+        x = resBlock(x, depth, (3, 3))
+    prob = policyHead(x)
+    value = valueHead(x)
+
+    model = Model(inputs=inputs, outputs=[prob, value])
+    model.compile(optimizer=Adam(), loss=['categorical_crossentropy', 'mse'])
+    return model
 
 
 def resBlock(x, depth, kernel):
@@ -96,36 +111,25 @@ class Net:
         else:
             self.age = age
         self.updateEps()
-        self.filename = 'NNs/' + self.name + '/' + \
-            self.name + ', ' + str(self.age) + '.h5'
-        if not os.path.exists('NNs/' + self.name):
-            os.makedirs('NNs/' + self.name)
-        if ID != '' and not local:
-            f = drive.CreateFile({'id': ID})
-            f.GetContentFile(self.filename)
-            self.model = keras.models.load_model(self.filename)
-        elif age != 0:
-            self.model = keras.models.load_model(self.filename)
+        if local:
+            self.filename = 'NNs/' + self.name + '/' + \
+                self.name + ', ' + str(self.age) + '.h5'
+            if not os.path.exists('NNs/' + self.name):
+                os.makedirs('NNs/' + self.name)
+            if age == 0:
+                self.model = makeModel(7, 128)
+            else:
+                self.model = keras.models.load_model(self.filename)
         else:
-            inputs = Input(shape=(hOth, wOth, 2))
-            depth = 64
-
-            x = Conv2D(filters=depth, kernel_size=(5, 5),
-                       padding='same', use_bias=False)(inputs)
-            x = BatchNormalization()(x)
-            x = Activation('relu')(x)
-            x = resBlock(x, depth, (3, 3))
-            x = resBlock(x, depth, (3, 3))
-            x = resBlock(x, depth, (3, 3))
-            x = resBlock(x, depth, (3, 3))
-            x = resBlock(x, depth, (3, 3))
-            prob = policyHead(x)
-            value = valueHead(x)
-
-            self.model = Model(inputs=inputs, outputs=[prob, value])
-
-            self.model.compile(optimizer=Adam(), loss=[
-                               'categorical_crossentropy', 'mse'])
+            self.filename = self.name + ', ' + str(self.age) + '.h5'
+            if ID != '':
+                f = drive.CreateFile({'id': ID})
+                f.GetContentFile(self.filename)
+                self.model = keras.models.load_model(self.filename)
+            if age == 0:
+                self.model = makeModel(7, 128)
+            else:
+                self.model = keras.models.load_model(self.filename)
         self.model.summary()
         print('Name = %s, Age = %d' % (self.name, self.age))
 

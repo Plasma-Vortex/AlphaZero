@@ -9,25 +9,9 @@ if local:
 
 np.random.seed()
 
-# s = startStateOth()
-# print(s)
-# printBoardOth(s)
-# valid = validMovesOth(s)
-# printBoardOth(valid)
-# print(valid)
-# new = nextStateOth(s, OthN*1+2)
-# printBoardOth(new)
-# add = AddSymmetriesOth([new, new.copy(), 1])
-# print('Symmetries')
-# for i in add:
-#     printBoardOth(i[0])
-# print('Original:')
-# new[0] = 1
-# printBoardOth(new)
-
 # nets = []
-# for i in range(100, 15001, 100):
-#     nets.append(Net('Conv v2', i))
+# for i in range(100, 2301, 100):
+#     nets.append(Net('Oth v1', i))
 #     print('Loaded age %d' % i)
 
 # score = tournament(nets, 1, 1, 0)
@@ -75,6 +59,13 @@ s100_1 = [-272, -265, -259, -269, -259, -266, -270, -262, -232, -225, -235, -244
 # (2280, 2941, 20)
 # s20_10 = [-28, -5, -10, -16, -15, -4, -20, -16, -27, -26, -22, -14, 1, 8, 13, 5, -8, 1, -35, 1, 3, 15, 23, 25, 4, 29, 25, 7, 15, 16, 18, 14, 14, 9]
 
+# Oth v1
+s100_1 = [-7, -8, 0, 2, 6, -7, -1, 5, -3, 6, -5, 5, 1, 22, 1, -2, -2, 4, 2, 1, -4, -3, -13]
+# Oth v2
+# s100_1 = [-4, -11, 0, -6, 4, -4, 6, 4, -5, 5, 2, 18, -9, 0]
+# Oth v3
+# s100_1 = [-2, -6, 20, -4, 6, -7, -4, 2, -8, 1, -4, 1, 5]
+
 # plt.plot(100*np.arange(1, len(s100_1)+1), s100_1, 'b-')
 # plt.plot(100*np.arange(1, len(s100_10)+1), s100_10, 'r-')
 # plt.plot(50*np.arange(1, len(s50_1)+1), s50_1/2, 'g-')
@@ -90,7 +81,7 @@ s100_1 = [-272, -265, -259, -269, -259, -266, -270, -262, -232, -225, -235, -244
 # n = Net('ResNet v1', -1)
 # n = Net('ResNet v2', -1)
 
-n = Net('Oth v3', -1)
+n = Net('Oth8 v1', -1)
 
 # n.train(5, 50)
 n.playHuman(100, 0)

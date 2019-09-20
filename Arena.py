@@ -7,13 +7,13 @@ if local:
 # play one game, n1 moves first
 # result is from n1's pov
 def fight(n1, n2, sims, temp):
-    state = startStateC4()
+    state = startStateOth()
     n = [n1, n2]
     turn = 0
     while True:
         move = n[turn].selectMove(state, sims, temp)[0]
-        state = nextStateC4(state, move)
-        end, endVal = evaluateStateC4(state)
+        state = nextStateOth(state, move)
+        end, endVal, _ = evaluateStateOth(state)
         if end:
             if __debug__:
                 if endVal == -1:

@@ -1,7 +1,7 @@
 import copy
 import numpy as np
 
-OthN = 6
+OthN = 8
 
 
 def line():
