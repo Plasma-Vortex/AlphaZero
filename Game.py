@@ -218,7 +218,7 @@ def printBoardTTT(state, flip=1):
         print()
 
 
-def printBoardC4(state, flip=1):
+def printBoardC4(state, flip=1, playing=False):
     print("Board:")
     for i in reversed(range(6)):
         for j in range(7):
@@ -229,6 +229,7 @@ def printBoardC4(state, flip=1):
             else:
                 print('-', end=' ')
         print()
+    print('1 2 3 4 5 6 7')
 
 
 def printOutputTTT(prob, value=None):
@@ -403,10 +404,12 @@ def getHumanMoveC4(state):
         string = input('Your Move: ')
         try:
             move = int(string)
-            if -3 <= move <= 6:
+            if 1 <= move <= 7:
+                return move - 1
+            if -3 <= move <= -1:
                 return move
             else:
-                print('Enter a column c (0 <= c <= 6), or -1, -2, -3 for special request')
+                print('Enter a column c (1 <= c <= 7), or -1, -2, -3 for a special request')
                 continue
         except ValueError:
             print('You did not type an integer')
@@ -434,7 +437,7 @@ def getHumanMoveOth(state):
                 if -3 <= move <= -1:
                     return move
                 else:
-                    print('Enter point (x, y) to move, or -1, -2, -3 for special request')
+                    print('Enter point (x, y) to move, or -1, -2, -3 for a special request')
                     continue
             except ValueError:
                 print('You did not type an integer')

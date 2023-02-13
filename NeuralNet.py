@@ -281,7 +281,8 @@ class Net:
                     lastCompState = state.copy()
                     move, prob = self.selectMove(state, sims, temp, True)
                     state = nextState(state, move)
-                    print("Computer's Move: " + str(move))
+                    # need to convert to game-dependent display format
+                    # print("Computer's Move: " + str(move))
                     if prob < 0.1:
                         print('Unusual move played!')
 

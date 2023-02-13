@@ -23,4 +23,4 @@ np.random.seed()
 n = Net('Conv-v2', -1)
 
 # n.train(5, 50)
-n.playHuman(10, 0)
+n.playHuman(1, 0)
