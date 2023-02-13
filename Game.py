@@ -1,11 +1,76 @@
 import copy
 import numpy as np
 
-OthN = 8
+GAME = 'C4'
 
+OthN = 6
 
-def line():
-    print('='*70)
+def startState():
+    if GAME == 'TTT': return startStateTTT()
+    elif GAME == 'C4': return startStateC4()
+    elif GAME == 'Oth': return startStateOth()
+    else: print('GAME is invalid: ', GAME)
+
+def validMoves(state):
+    if GAME == 'TTT': return validMovesTTT(state)
+    elif GAME == 'C4': return validMovesC4(state)
+    elif GAME == 'Oth': return validMovesOth(state)
+    else: print('GAME is invalid: ', GAME)
+
+def evaluateState(state):
+    if GAME == 'TTT': return evaluateStateTTT(state)
+    elif GAME == 'C4': return evaluateStateC4(state)
+    elif GAME == 'Oth': return evaluateStateOth(state)
+    else: print('GAME is invalid: ', GAME)
+
+def nextState(state, move):
+    if GAME == 'TTT': return nextStateTTT(state, move)
+    elif GAME == 'C4': return nextStateC4(state, move)
+    elif GAME == 'Oth': return nextStateOth(state, move)
+    else: print('GAME is invalid: ', GAME)
+
+def AddSymmetries(data):
+    if GAME == 'TTT': return AddSymmetriesTTT(data)
+    elif GAME == 'C4': return AddSymmetriesC4(data)
+    elif GAME == 'Oth': return AddSymmetriesOth(data)
+    else: print('GAME is invalid: ', GAME)
+
+def printBoard(state, flip=1, playing=False):
+    if GAME == 'TTT': printBoardTTT(state, flip)
+    elif GAME == 'C4': printBoardC4(state, flip)
+    elif GAME == 'Oth': printBoardOth(state, flip, playing)
+    else: print('GAME is invalid: ', GAME)
+
+def printOutput(prob, value=None):
+    if GAME == 'TTT': printOutputTTT(prob, value)
+    elif GAME == 'C4': printOutputC4(prob, value)
+    elif GAME == 'Oth': printOutputOth(prob, value)
+    else: print('GAME is invalid: ', GAME)
+
+def printOutput(prob, value=None):
+    if GAME == 'TTT': printOutputTTT(prob, value)
+    elif GAME == 'C4': printOutputC4(prob, value)
+    elif GAME == 'Oth': printOutputOth(prob, value)
+    else: print('GAME is invalid: ', GAME)
+
+def getHumanMove(state):
+    if GAME == 'TTT': return getHumanMoveTTT(state)
+    elif GAME == 'C4': return getHumanMoveC4(state)
+    elif GAME == 'Oth': return getHumanMoveOth(state)
+    else: print('GAME is invalid: ', GAME)
+
+if GAME == 'TTT': stateSize = 9
+elif GAME == 'C4': stateSize = 42
+elif GAME == 'Oth': stateSize = OthN*OthN
+
+if GAME == 'TTT': maxMoves = 9
+elif GAME == 'C4': maxMoves = 7
+elif GAME == 'Oth': maxMoves = OthN*OthN + 1
+
+if GAME == 'TTT': height, width = 3, 3
+elif GAME == 'C4': height, width = 6, 7
+elif GAME == 'Oth': height, width = OthN, OthN
+
 
 def startStateTTT():
     return np.zeros(9)
@@ -24,48 +89,50 @@ def validMovesC4(state):
 
 
 def evaluateStateTTT(s):
+    valid = validMovesTTT(s)
     for i in range(3):
         if s[3*i] == s[3*i+1] == s[3*i+2] != 0:
-            return (True, s[3*i])
+            return (True, s[3*i], valid)
         if s[i] == s[i+3] == s[i+6] != 0:
-            return (True, s[i])
+            return (True, s[i], valid)
     if s[0] == s[4] == s[8] != 0:
-        return (True, s[0])
+        return (True, s[0], valid)
     if s[2] == s[4] == s[6] != 0:
-        return (True, s[2])
+        return (True, s[2], valid)
     for i in range(9):
         if s[i] == 0:
-            return (False, 0)
-    return (True, 0)
+            return (False, 0, valid)
+    return (True, 0, valid)
 
 
 def evaluateStateC4(s):
+    valid = validMovesC4(s)
     # horizontal
     for i in range(6):
         for j in range(4):
             if s[7 * i + j] == s[7 * i + j + 1] == s[7 * i + j + 2] == s[7 * i + j + 3] != 0:
-                return (True, s[7 * i + j])
+                return (True, s[7 * i + j], valid)
     # vertical
     for i in range(3):
         for j in range(7):
             if s[7 * i + j] == s[7 * i + j + 7] == s[7 * i + j + 14] == s[7 * i + j + 21] != 0:
-                return (True, s[7 * i + j])
+                return (True, s[7 * i + j], valid)
     # diagonal up-right
     for i in range(3):
         for j in range(4):
             if s[7 * i + j] == s[7 * i + j + 8] == s[7 * i + j + 16] == s[7 * i + j + 24] != 0:
-                return (True, s[7 * i + j])
+                return (True, s[7 * i + j], valid)
     # diagonal up-left
     for i in range(3):
         for j in range(3, 7):
             if s[7 * i + j] == s[7 * i + j + 6] == s[7 * i + j + 12] == s[7 * i + j + 18] != 0:
-                return (True, s[7 * i + j])
+                return (True, s[7 * i + j], valid)
     # there are still moves available
     for i in range(7):
         if s[i + 35] == 0:
-            return (False, 0)
+            return (False, 0, valid)
     # tie
-    return (True, 0)
+    return (True, 0, valid)
 
 
 def nextStateTTT(state, move):
@@ -324,6 +391,26 @@ def printOutputOth(prob, value=None):
     if value != None:
         print('Predicted Value = %.2f' % value)
 
+
+def line():
+    print('='*70)
+
+def getHumanMoveC4(state):
+    while True:
+        line()
+        valid = validMovesC4(state)
+        printBoardC4(state)
+        string = input('Your Move: ')
+        try:
+            move = int(string)
+            if -3 <= move <= 6:
+                return move
+            else:
+                print('Enter a column c (0 <= c <= 6), or -1, -2, -3 for special request')
+                continue
+        except ValueError:
+            print('You did not type an integer')
+            continue
 
 def getHumanMoveOth(state):
     while True:

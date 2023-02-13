@@ -21,22 +21,6 @@ else:
     gauth.credentials = GoogleCredentials.get_application_default()
     drive = GoogleDrive(gauth)
 
-stateSizeC4 = 42
-maxMovesC4 = 7
-
-stateSizeTTT = 9
-maxMovesTTT = 9
-
-OthN = 8
-stateSizeOth = OthN*OthN
-maxMovesOth = OthN*OthN + 1
-
-hC4 = 6
-wC4 = 7
-
-hOth = OthN
-wOth = OthN
-
 batchsize = 32
 alpha = 0.5
 
@@ -44,13 +28,13 @@ alpha = 0.5
 def convFormat(state):
     # return state
 
-    a = state.reshape(hOth, wOth)
+    a = state.reshape(height, width)
     b = [np.maximum(a, 0), np.maximum(-a, 0)]
     return np.stack(b, axis=-1)
 
 
 def makeModel(resLayers, depth):
-    inputs = Input(shape=(hOth, wOth, 2))
+    inputs = Input(shape=(height, width, 2))
 
     x = Conv2D(filters=depth, kernel_size=(5, 5),
                padding='same', use_bias=False)(inputs)
@@ -85,7 +69,7 @@ def policyHead(x):
     p = BatchNormalization()(p)
     p = Activation('relu')(p)
     p = Flatten()(p)
-    p = Dense(maxMovesOth)(p)
+    p = Dense(maxMoves)(p)
     p = Activation('softmax')(p)
     return p
 
@@ -107,13 +91,13 @@ class Net:
         self.name = name
         if age == -1:
             files = os.listdir('NNs/'+self.name)
-            self.age = max([int(f[len(self.name)+2:-3]) for f in files])
+            self.age = max([int(f[len(self.name)+1:-3]) for f in files])
         else:
             self.age = age
         self.updateEps()
         if local:
             self.filename = 'NNs/' + self.name + '/' + \
-                self.name + ', ' + str(self.age) + '.h5'
+                self.name + '-' + str(self.age) + '.h5'
             if not os.path.exists('NNs/' + self.name):
                 os.makedirs('NNs/' + self.name)
             if age == 0:
@@ -161,7 +145,7 @@ class Net:
             cur = cur.parent
 
     def selfPlay(self, sims):
-        start = startStateOth()
+        start = startState()
         cur = Node(start)
         p = self.predictOne(start)[0]
         cur.expand(p)
@@ -179,7 +163,7 @@ class Net:
             prob = cur.getProbDist()
             winner = -winner
             data = [cur.getState(), prob, winner]
-            allData += AddSymmetriesOth(data)
+            allData += AddSymmetries(data)
             cur = cur.parent
         return allData
 
@@ -229,23 +213,23 @@ class Net:
             prob, value = self.predictOne(state)
             if display:
                 print('NN: ', end='')
-                printOutputOth(prob, value)
+                printOutput(prob, value)
         else:
             cur = Node(state)
             for _ in range(sims):
                 self.simulate(cur)
             prob = cur.getProbDist()
-            value = max(cur.Q[i] for i in range(maxMovesOth) if cur.valid[i])
+            value = max(cur.Q[i] for i in range(maxMoves) if cur.valid[i])
             if display:
                 print('MCTS:')
-                printOutputOth(prob, value)
-        valid = validMovesOth(state)
+                printOutput(prob, value)
+        valid = validMoves(state)
         prob = np.where(valid, prob, 0)
         prob /= np.sum(prob)
         if temp == 0:
             move = np.argmax(prob)
         else:
-            move = np.random.choice(maxMovesOth, p=prob)
+            move = np.random.choice(maxMoves, p=prob)
         p = prob[move]
         return (move, p)
 
@@ -256,12 +240,13 @@ class Net:
                 turn = 1
             else:
                 turn = -1
-            state = startStateOth()
-            lastCompState = startStateOth()
+            state = startState()
+            print(state)
+            lastCompState = startState()
             history = []
             while True:
                 if turn == 1:  # Human Turn
-                    move = getHumanMoveOth(state)
+                    move = getHumanMove(state)
                     if move == -1:
                         if len(history) == 0:
                             print('Cannot undo move! This is the starting state')
@@ -273,34 +258,34 @@ class Net:
                     elif move == -2:
                         line()
                         print('Predictions for current state (your turn)')
-                        printBoardOth(state)
+                        printBoard(state)
                         p, v = self.predictOne(state)
-                        printOutputOth(p, v)
+                        printOutput(p, v)
                         line()
                         continue
                     elif move == -3:
-                        if np.array_equal(state, startStateOth()):
+                        if np.array_equal(state, startState()):
                             print('Previous state predictions do not exist')
                             continue
                         line()
                         print('Predictions for previous state (computer turn)')
-                        printBoardOth(lastCompState)
+                        printBoard(lastCompState)
                         p, v = self.predictOne(lastCompState)
-                        printOutputOth(p, v)
+                        printOutput(p, v)
                         line()
                         continue
                     else:
                         history.append(state.copy())
-                        state = nextStateOth(state, move)
+                        state = nextState(state, move)
                 else:
                     lastCompState = state.copy()
                     move, prob = self.selectMove(state, sims, temp, True)
-                    state = nextStateOth(state, move)
+                    state = nextState(state, move)
                     print("Computer's Move: " + str(move))
                     if prob < 0.1:
                         print('Unusual move played!')
 
-                done, winner, _ = evaluateStateOth(state)
+                done, winner, _ = evaluateState(state)
                 if done:
                     if winner == 1:
                         if turn == 1:
@@ -311,7 +296,7 @@ class Net:
                         print('Error: impossible to win on opponents turn')
                     else:
                         print('Tie')
-                    printBoardOth(state*turn)
+                    printBoard(state*turn)
                     break
                 state *= -1
                 turn *= -1
@@ -321,7 +306,7 @@ class Net:
 
     def predictOne(self, state):
         s = np.expand_dims(convFormat(state), axis=0)
-        p, v = self.model.predict(s)
+        p, v = self.model.predict(s, verbose=0)
         p = p[0]
         v = v[0][0]
         return (p, v)
