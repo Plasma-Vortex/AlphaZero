@@ -3,7 +3,6 @@ local = True
 if local:
     import math
     import numpy as np
-    import tensorflow as tf
     import copy
     from Game import *
 
@@ -52,7 +51,7 @@ class Node:
                 print("Error in Node.py expand: tried to expand non-leaf node")
                 return
             if prob.shape != (maxMoves,):
-                print("Error in Node.py expand: probability vector size does not match -- size = " + str(tf.size(prob)))
+                print("Error in Node.py expand: probability vector shape does not match -- shape = " + str(prob.shape))
                 return
         self.leaf = False
         self.children = [Node(-nextState(self.state, i), self)
