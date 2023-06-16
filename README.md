@@ -2,4 +2,14 @@
 
 This code implements the AlphaZero algorithm for Connect Four and Othello.
 
-To play against the AI, install any dependencies (using pipenv) and run `python Main.py`.
+## To play against the AI
+
+1. Clone the repo: `git clone https://github.com/Plasma-Vortex/AlphaZero.git`
+2. Install dependencies.
+    a. If using Pipenv: `pipenv install`, then `pipenv shell`
+    b. Alternatively, install the packages listed in `Pipfile` with your preferred method.
+3. Run `python Main.py`
+
+## How good is it?
+
+The AI can beat a perfect Connect Four player if it goes first (Connect Four is a win for the first player under optimal play). At Othello, it beats me every single game (haven't benchmarked against other Othello programs or players).
