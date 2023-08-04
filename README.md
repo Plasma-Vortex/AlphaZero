@@ -4,7 +4,7 @@ This code implements the AlphaZero algorithm for Connect Four and Othello.
 
 ## To play against the AI
 
-1. Clone the repo: `git clone https://github.com/Plasma-Vortex/AlphaZero.git`
+1. Clone the repo: `git clone https://github.com/howard36/AlphaZero.git`
 2. Install dependencies.
     a. If using Pipenv: `pipenv install`, then `pipenv shell`
     b. Alternatively, install the packages listed in `Pipfile` with your preferred method.
