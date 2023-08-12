@@ -6,8 +6,8 @@ This code implements the AlphaZero algorithm for Connect Four and Othello.
 
 1. Clone the repo: `git clone https://github.com/howard36/AlphaZero.git`
 2. Install dependencies.
-    a. If using Pipenv: `pipenv install`, then `pipenv shell`
-    b. Alternatively, install the packages listed in `Pipfile` with your preferred method.
+    1. If using Pipenv: `pipenv install`, then `pipenv shell`
+    2. Alternatively, install the packages listed in `Pipfile` with your preferred method.
 3. Run `python Main.py`
 
 ## How good is it?
